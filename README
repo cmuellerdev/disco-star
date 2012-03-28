@@ -1,0 +1,162 @@
+StarCluster Disco Plug-in
+-------------------------
+
+This plug-in, along with the associated Amazon EC2 AMI, make it
+trivial to launch a Disco MapReduce cluster on EC2.  The Disco plug-in 
+intializes Disco on a cluster, adds each cluster node to Disco, and
+sets up data directories on the ephemeral drive for use by HDFS.
+
+
+Quick Start
+-----------
+
+1) Install StarCluster (http://web.mit.edu/star/cluster/)
+2) Copy config.disco to ~/.starcluster/config
+3) Add your Amazon credentials to the Starcluster config: 
+
+  AWS_ACCESS_KEY_ID = # TODO: your key id
+  AWS_SECRET_ACCESS_KEY = # TODO: your secret key
+  AWS_USER_ID= # TODO: your account number
+  
+  # TODO: Add your keypair
+  [key gsg-keypair]
+  KEY_LOCATION=/home/myuser/.ssh/id_rsa-gsg-keypair
+
+4) Start a four node cluster
+
+  $ starcluster start -s 4 disco-test
+  < ... wait for the cluster to start ... >
+
+5) View the Disco web interface on port 8989 of your cluster master
+
+   http://<node id>.amazonaws.com:8989/
+
+That's it!
+
+
+AMI ID
+------
+
+The AMI ID for the StarCluster Disco Image is:  
+
+  ami-84d10ced
+
+This is based on the base x86_64 StarCluster AMI (ami-999d49f0) for
+use with any 64-bit instance type (e.g., m1.large).
+
+
+Config File Details
+-------------------
+
+If you already have StarCluster installed, here are the additions
+you'll need to make to your config file (in the order the sections
+appear):
+
+# Disco Image
+NODE_IMAGE_ID = ami-84d10ced
+
+...
+
+# Tell StarCluster to use the Disco plugin
+PLUGINS = disco_plugin
+
+...
+
+# Set custom Disco permissions
+PERMISSIONS = disco
+
+...
+
+# Setup the Disco plugin
+[plugin disco_plugin]
+SETUP_CLASS = disco_plugin.ConfigDisco
+
+...
+
+# Set permissions to allow communication over port 8989
+[permission disco]
+from_port = 8989
+to_port = 8989
+
+
+Cluster Size for HDFS
+---------------------
+
+The default Disco settings on the AMI use three copies of each HDFS
+file.  HDFS will fail to startup correctly if there are fewer than
+four nodes in the cluster (three workers, one master).
+
+
+Using HDFS on Ephemeral Storage
+-------------------------------
+
+The Disco plug-in uses the ephemeral storage under /mnt on each node
+for HDFS.  The ephemeral storage is the fastest storage available to
+a running instance and is equivalent to a local disk.  However, the
+ephemeral storage is only available as long as the instance is
+running.  As soon as the instance is stopped or terminated, the
+ephemeral storage is removed.  
+
+For Disco, as long as the cluster stays running, anything stored in
+HDFS will be available to Disco.   Once the cluster goes down, either
+by stopping it or terminating it, the HDFS volumes will cease to
+exist.
+
+A few possible ways allow the HDFS volumes to live beyond the life of
+the cluster are:
+
+- Add a step to copy the contents of HDFS to/from S3 or EBS when the
+  cluster is launched and stopped.  This would require keeping the
+  same number of nodes and also copying any Disco config information. 
+
+- Mount EBS volumes on each node and use those for HDFS.  This option
+  would make it easy to keep HDFS volumes intact but will degrade
+  performance since EBS volumes are slower than ephemeral storage.
+
+Neither of these options are implemented at the moment.  If you do
+implement one, I will happily integrate it back into the plug-in.
+
+
+AMI Details
+-----------
+
+The AMI is built on the base x86_64 StarCluster AMI (ami-999d49f0) for  
+use with any 64-bit instance type (e.g., m1.large).
+
+Disco was installed on the image following the standard instructions.
+lighttpd was also installed, though the current Disco config is not
+setup to use it.
+
+
+Acknowledgements and Contact
+----------------------------
+
+The AMI was created by Chris Mueller to support the Disco tutorial at
+PyData 2012.  
+
+The video for the tutorial is online at:
+
+  http://pyvideo.org/video/961/the-disco-mapreduce-framework
+
+The StarCluster plug-in was developed by Don MacMillen (primarily) and
+Chris Mueller during the PyData Hack Night.
+
+Thanks to Peter Wang and Travis Oliphant at Continuum Analytics for
+organizing both events.
+
+Contact Chris Mueller with any questions or comments related to the
+plug-in.  cmueller at yahoo 
+
+
+External Links
+--------------
+
+Amazon AWS:
+  http://aws.amazon.com
+
+StarCluster:
+  http://web.mit.edu/star/cluster/
+
+Disco:
+  http://discoproject.org
+
