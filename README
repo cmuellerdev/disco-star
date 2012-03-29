@@ -4,7 +4,7 @@ StarCluster Disco Plug-in
 This plug-in, along with the associated Amazon EC2 AMI, make it
 trivial to launch a Disco MapReduce cluster on EC2.  The Disco plug-in 
 intializes Disco on a cluster, adds each cluster node to Disco, and
-sets up data directories on the ephemeral drive for use by HDFS.
+sets up data directories on the ephemeral drive for use by DDFS.
 
 
 Quick Start
@@ -79,38 +79,38 @@ from_port = 8989
 to_port = 8989
 
 
-Cluster Size for HDFS
+Cluster Size for DDFS
 ---------------------
 
-The default Disco settings on the AMI use three copies of each HDFS
-file.  HDFS will fail to startup correctly if there are fewer than
+The default Disco settings on the AMI use three copies of each DDFS
+file.  DDFS will fail to startup correctly if there are fewer than
 four nodes in the cluster (three workers, one master).
 
 
-Using HDFS on Ephemeral Storage
+Using DDFS on Ephemeral Storage
 -------------------------------
 
 The Disco plug-in uses the ephemeral storage under /mnt on each node
-for HDFS.  The ephemeral storage is the fastest storage available to
+for DDFS.  The ephemeral storage is the fastest storage available to
 a running instance and is equivalent to a local disk.  However, the
 ephemeral storage is only available as long as the instance is
 running.  As soon as the instance is stopped or terminated, the
 ephemeral storage is removed.  
 
 For Disco, as long as the cluster stays running, anything stored in
-HDFS will be available to Disco.   Once the cluster goes down, either
-by stopping it or terminating it, the HDFS volumes will cease to
+DDFS will be available to Disco.   Once the cluster goes down, either
+by stopping it or terminating it, the DDFS volumes will cease to
 exist.
 
-A few possible ways allow the HDFS volumes to live beyond the life of
+A few possible ways allow the DDFS volumes to live beyond the life of
 the cluster are:
 
-- Add a step to copy the contents of HDFS to/from S3 or EBS when the
+- Add a step to copy the contents of DDFS to/from S3 or EBS when the
   cluster is launched and stopped.  This would require keeping the
   same number of nodes and also copying any Disco config information. 
 
-- Mount EBS volumes on each node and use those for HDFS.  This option
-  would make it easy to keep HDFS volumes intact but will degrade
+- Mount EBS volumes on each node and use those for DDFS.  This option
+  would make it easy to keep DDFS volumes intact but will degrade
   performance since EBS volumes are slower than ephemeral storage.
 
 Neither of these options are implemented at the moment.  If you do
